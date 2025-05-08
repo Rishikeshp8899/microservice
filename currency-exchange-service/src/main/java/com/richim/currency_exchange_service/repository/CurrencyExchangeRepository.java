@@ -7,5 +7,6 @@ import com.richim.currency_exchange_service.bean.CurrencyExchange;
 
 @Repository
 public interface CurrencyExchangeRepository extends JpaRepository<CurrencyExchange, Long> {
-
+	CurrencyExchange findByFromAndTo(String from, String to);
+	
 }

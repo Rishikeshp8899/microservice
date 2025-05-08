@@ -9,15 +9,27 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.richim.currency_exchange_service.bean.CurrencyExchange;
+import com.richim.currency_exchange_service.repository.CurrencyExchangeRepository;
 
 @RestController
 public class CurrencyExchangeController {
 	
 	@Autowired
+	private CurrencyExchangeRepository repository;
+	
+	@Autowired
 	private Environment env;
 
 	@GetMapping("/currency-exchange/from/{from}/to/{to}")
-	public CurrencyExchange retriveExchangeValue(@PathVariable String from,@PathVariable String to) {
-		return new CurrencyExchange(1L,"usd","inr",BigDecimal.ONE,env.getProperty("local.server.port"));
+	public CurrencyExchange CurrencyExchangeController 
+(@PathVariable String from,@PathVariable String to) {
+		CurrencyExchange currencyExchange=repository.findByFromAndTo(from, to);
+		if(currencyExchange==null) {
+			throw new RuntimeException("Unable to find data for: "+from+" to:"+to);
+		}
+		
+		currencyExchange.setEnvironment(env.getProperty("local.server.port"));
+		
+		return currencyExchange;
 	}
 }
