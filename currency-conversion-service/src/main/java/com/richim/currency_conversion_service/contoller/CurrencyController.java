@@ -20,6 +20,9 @@ public class CurrencyController {
 	@Autowired
 	private Environment env;
 	
+	@Autowired 
+	private CurrencyExchangeProxy currencyExchangeProxy;
+	
 	@GetMapping("/currency-conversion/from/{from}/to/{to}/quantity/{quantity}")
 	public CurrencyConversion calculateConversion(@PathVariable String from,@PathVariable String to,@PathVariable String  quantity) {
 		
@@ -28,9 +31,26 @@ public class CurrencyController {
 		uriVariables.put("to",to);
 		uriVariables.put("from", from);
 		uriVariables.put("quantity", quantity);
+
 		
 		ResponseEntity<CurrencyConversion> responseEntity =new RestTemplate().getForEntity("http://127.0.0.1:7001/currency-exchange/from/{from}/to/{to}", CurrencyConversion.class,uriVariables);
 		
-		return new CurrencyConversion(responseEntity.getBody().getId(),from,to,responseEntity.getBody().getQauntity(),responseEntity.getBody().getConversionMultiple(),BigDecimal.valueOf(Integer.parseInt(quantity)*responseEntity.getBody().getConversionMultiple().intValue()),env.getProperty("local.server.port"));
+		return new CurrencyConversion(responseEntity.getBody().getId(),from,to,BigDecimal.valueOf(Integer.parseInt(quantity)),responseEntity.getBody().getConversionMultiple(),BigDecimal.valueOf(Integer.parseInt(quantity)*responseEntity.getBody().getConversionMultiple().intValue()),env.getProperty("local.server.port"));
+	}
+	
+	
+	@GetMapping("/currency-conversion-openfeign/from/{from}/to/{to}/quantity/{quantity}")
+	public CurrencyConversion calculateConversionProxy(@PathVariable String from,@PathVariable String to,@PathVariable String  quantity) {
+		
+		HashMap<String,String> uriVariables=new HashMap<>();
+		
+		uriVariables.put("to",to);
+		uriVariables.put("from", from);
+		uriVariables.put("quantity", quantity);
+
+		
+		CurrencyConversion responseEntity =currencyExchangeProxy.CurrencyExchangeController(from, to);
+		
+		return new CurrencyConversion(responseEntity.getId(),from,to,BigDecimal.valueOf(Integer.parseInt(quantity)),responseEntity.getConversionMultiple(),BigDecimal.valueOf(Integer.parseInt(quantity)*responseEntity.getConversionMultiple().intValue()),env.getProperty("local.server.port"));
 	}
 }
